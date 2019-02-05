@@ -12,40 +12,15 @@ from lime.lime_text import LimeTextExplainer
 
 #run service with ./bin/service/nli-service-cli.py -R saved/snli/esim/2/esim -r 300 -m esim -p 9001
 # python -m IPython notebook
+DATA_FILENAME = 'explanations.jsonl'
 
 def contains_number(inputString):
 
     return any(char.isdigit() for char in inputString)
 
-
 service_path = os.path.abspath("service/nli-service-cli.py")
 model_path = os.path.abspath("saved/snli/esim/2/esim")
 model_real_path = model_path.replace('/bin','')
-
-#get all labeled instances 
-#for instance in instances 
-	#exp1 = explainer(H+P)
-	#exp2 = explainer(P+H)
-	#exp3 = explainer(BoW) look into 3 different BoWs 
-	#visualize each explanation!!! 
-	#create a numpy array of explanations. for each instance 3 dimensions, 1 for each explanation. 
-
-#take top scores (i.e 3) for each 10 feature explanation. 
-#for each word, count it 
-
-#dictionary for each class
-
-	#entailement -> should have been 
-		#contradiction -> (what it is)
-			#word count 
-		#unknown -> (what it is)
-	#what class should it be 
-	#what class it was. 
-
-#take top 3 words 
-#dictionary between word and count of positive and negative 
-#when you have 3 classes, for each class, right/wrong(for model prediction), and then check for bias in specific words. 
-
 
 class_names = ['entailment','contradiction','neutral']
 URL = "http://0.0.0.0:9001/nnli"
@@ -54,10 +29,6 @@ FILE_NAME = 'fever_labeled.jsonl'
 with open(FILE_NAME) as f:
     labeled_fever_data = list(f)
 
-# print("LENGTH OF LABELED "+str(len(labeled_fever_data)))
-
-data_with_numbers=[]
-res = []
 
 def get_predicted_label(result_json):
 
@@ -114,24 +85,27 @@ def call_lime(instance, isBow, num_of_features):
 	print(instance)
 	explainer = LimeTextExplainer(class_names=class_names,bow=isBow)
 	exp = explainer.explain_instance(instance,call_service_lime, num_features=num_of_features)
-	# print(exp)
 	return exp.as_list()
 
+def main():
 
-for item in labeled_fever_data:
+	res = []
 
-	instance = json.loads(item)
+	for item in labeled_fever_data:
 
-	if contains_number(instance["sentence1"]) or contains_number(instance["sentence2"]):
-		string_instance = instance["sentence1"]+instance["sentence2"]
-		instance["label"] = get_model_prediction([instance["sentence1"],instance["sentence2"]])
-		instance["explanation"] = call_lime(string_instance,True,10)
-		res.append(instance) 
-		with open('result.jsonl','w') as outfile:  
-			json.dump(instance, outfile)
+		instance = json.loads(item)
 
-		print("RESULT"+str(instance))
-		break
-		
+		if contains_number(instance["sentence1"]) or contains_number(instance["sentence2"]):
+			string_instance = instance["sentence1"]+instance["sentence2"]
+			instance["label"] = get_model_prediction([instance["sentence1"],instance["sentence2"]])
+			instance["explanation"] = call_lime(string_instance,True,10)
+			res.append(instance)
+
+	with open(DATA_FILENAME,'w') as outfile:  
+		json.dump(res, outfile)
+
+if __name__ == '__main__':
+	main()
+
 
 
