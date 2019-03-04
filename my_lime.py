@@ -29,7 +29,6 @@ FILE_NAME = 'fever_labeled.jsonl'
 with open(FILE_NAME) as f:
     labeled_fever_data = list(f)
 
-
 def get_predicted_label(result_json):
 
 	contradiction = float(result_json["contradiction"])
@@ -89,20 +88,49 @@ def call_lime(instance, isBow, num_of_features):
 
 def main():
 
-	res = []
-
+	list = []
 	for item in labeled_fever_data:
-
 		instance = json.loads(item)
+		list.append(instance)
 
-		if contains_number(instance["sentence1"]) or contains_number(instance["sentence2"]):
-			string_instance = instance["sentence1"]+instance["sentence2"]
-			instance["label"] = get_model_prediction([instance["sentence1"],instance["sentence2"]])
-			instance["explanation"] = call_lime(string_instance,True,10)
-			res.append(instance)
+	sen1 = []
+	sen2 = []
 
-	with open(DATA_FILENAME,'w') as outfile:  
-		json.dump(res, outfile)
+	print(len(list))
+
+	for item in list: 
+		sen1.append(item["sentence1"])
+		sen2.append(item["sentence2"])
+
+	print(len(sen1))
+	print(len(sen2))
+
+
+	data_items = {
+		"sentence1":json.dumps(sen1),
+		"sentence2":json.dumps(sen2)
+	}
+
+	
+	# data = json.dumps(data_items)
+	url = "http://0.0.0.0:9001/nnli"
+
+	res=requests.post(url,data=data_items)
+	# res_json= res.json()
+	# return res_json
+
+	# for item in labeled_fever_data:
+
+	# 	instance = json.loads(item)
+
+	# 	if contains_number(instance["sentence1"]) or contains_number(instance["sentence2"]):
+	# 		string_instance = instance["sentence1"]+instance["sentence2"]
+	# 		instance["label"] = get_model_prediction([instance["sentence1"],instance["sentence2"]])
+	# 		instance["explanation"] = call_lime(string_instance,True,10)
+	# 		res.append(instance)
+
+	# with open(DATA_FILENAME,'w') as outfile:  
+	# 	json.dump(res, outfile)
 
 if __name__ == '__main__':
 	main()
