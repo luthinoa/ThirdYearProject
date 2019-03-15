@@ -8,6 +8,7 @@ import re
 from lime import lime_text 
 from IPython import get_ipython
 from lime.lime_text import LimeTextExplainer
+import time
 
 #run service with ./bin/service/nli-service-cli.py -R saved/snli/esim/2/esim -r 300 -m esim -p 9001
 # python -m IPython notebook
@@ -25,6 +26,7 @@ def contains_number(inputString):
 #sentence1 and sentence 2 for each object. 
 def get_data(file_name, num_of_instances):
 	labeled_fever_data = []
+
 	with open(DATA_FILENAME) as f:
 		labeled_fever_data = list(f)
 	string_json = json.dumps(labeled_fever_data)
@@ -43,8 +45,9 @@ def get_data(file_name, num_of_instances):
 		}
 		all_instances.append(data_item)
 
-	print(all_instances)
+	print(len(all_instances))
 	return all_instances
+
 
 # this will input arr - all augmented versions of the instance
 # split two sentence according to "LIME_SPLIT" expression
@@ -71,6 +74,9 @@ def call_service(data_items):
 		"sentence2":json.dumps(sen2)
 	}
 	res = requests.post(URL,data=post_data)
+
+
+
 	res_json = res.json()
 	return res_json
 
@@ -147,29 +153,34 @@ def append_model_predictions(data_items):
 	return res_json
 
 #iterate on data instances, produce LIME explanation for each instance. 
-def append_lime_explanations(data_instances):
+def append_lime_explanations(data_instances,isBow,num_of_features):
 
 	for item in data_instances:
-		item["explanation"] = call_lime(item,False, 10)
+		item["explanation"] = call_lime(item,isBow, num_of_features)
 
 	return data_instances
 
+def get_data_with_numbers(data_instances):
+
+	data_with_numbers = []
+	for item in data_instances:
+		if(contains_number(item["sentence1"]) or contains_number(item["sentence2"])):
+			data_with_numbers.append(item)
+
+	print(len(data_with_numbers))
+	return data_with_numbers
+
 
 def main():	
+	data_size = 28840
+	half = 14420
+	data_instances = get_data(DATA_FILENAME,data_size)
+	data_instances = get_data_with_numbers(data_instances)
 
-	data_instances = get_data(DATA_FILENAME,2)
-	print(data_instances)
-	print(len(data_instances))
+	# print(data_instances)
+	# print(len(data_instances))
 	data_with_predictions = append_model_predictions(data_instances)
-	data_with_explanations = append_lime_explanations(data_instances)
-
-	print(data_with_explanations)
-
-	# if contains_number(instance["sentence1"]) or contains_number(instance["sentence2"]):
-	# 	string_instance = instance["sentence1"]+instance["sentence2"]
-	# 	instance["label"] = get_model_prediction([instance["sentence1"],instance["sentence2"]])
-	# 	instance["explanation"] = call_lime(string_instance,True,10)
-	# 	res.append(instance)
+	data_with_explanations = append_lime_explanations(data_instances,True,5)
 
 	with open(DATA_OUTPUT_FILE,'w') as outfile:  
 		json.dump(data_with_explanations, outfile)
