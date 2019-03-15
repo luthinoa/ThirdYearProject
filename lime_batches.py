@@ -14,7 +14,7 @@ import time
 # python -m IPython notebook
 
 DATA_FILENAME = 'fever_labeled.jsonl'
-DATA_OUTPUT_FILE = 'explanation.jsonl'
+DATA_OUTPUT_FILE = 'explanation2.jsonl'
 class_names = ['entailment','contradiction','neutral']
 URL = "http://0.0.0.0:9001/nnli"
 
@@ -24,14 +24,13 @@ def contains_number(inputString):
 
 #get data from labeled data json file, create a list of object which contains 
 #sentence1 and sentence 2 for each object. 
-def get_data(file_name, num_of_instances):
+def get_data(file_name):
 	labeled_fever_data = []
 
 	with open(DATA_FILENAME) as f:
 		labeled_fever_data = list(f)
 	string_json = json.dumps(labeled_fever_data)
 	json_data = json.loads(string_json)
-	json_data = json_data[:num_of_instances]
 
 	all_instances = []
 
@@ -45,8 +44,15 @@ def get_data(file_name, num_of_instances):
 		}
 		all_instances.append(data_item)
 
-	print(len(all_instances))
 	return all_instances
+
+def get_data_in_range(file_name,start,end):
+
+	data_list = get_data(file_name)
+	res = []
+	for i in range(start,end):
+		res.append(data_list[i])
+	return res 
 
 
 # this will input arr - all augmented versions of the instance
@@ -60,12 +66,9 @@ def call_service(data_items):
 	sen2 = []
 
 	for item in data_items:
-		print(type(item))
 		sentence1 = item["sentence1"]
 		sentence2 = item["sentence2"]
 
-		print(sentence1)
-		print(sentence2)
 		sen1.append(sentence1)
 		sen2.append(sentence2)
 
@@ -78,6 +81,7 @@ def call_service(data_items):
 
 
 	res_json = res.json()
+	print(type(res_json))
 	return res_json
 
 
@@ -167,15 +171,13 @@ def get_data_with_numbers(data_instances):
 		if(contains_number(item["sentence1"]) or contains_number(item["sentence2"])):
 			data_with_numbers.append(item)
 
-	print(len(data_with_numbers))
 	return data_with_numbers
 
 
 def main():	
 	data_size = 28840
 	half = 14420
-	data_instances = get_data(DATA_FILENAME,data_size)
-	data_instances = get_data_with_numbers(data_instances)
+	data_instances = get_data_in_range(DATA_FILENAME,1000,2000)
 
 	# print(data_instances)
 	# print(len(data_instances))
