@@ -81,10 +81,13 @@ def call_service(data_items):
 	}
 	res = requests.post(URL,data=post_data)
 
+	try:
+		res_json = res.json()
+		return res_json
 
-
-	res_json = res.json()
-	return res_json
+	except Exception as e: 
+		print(e)
+		pass
 
 
 
@@ -179,11 +182,9 @@ def get_data_with_numbers(data_instances):
 def main():	
 	data_size = 28840
 	half = 14420
-	data_instances = get_data_in_range(DATA_FILENAME,0,10)
-	
+	data_instances = get_data_in_range(DATA_FILENAME,0,2000)
+	data_instances = get_data_with_numbers(data_instances)
 	data_with_labels = append_model_predictions(data_instances)
-	
-
 	data_with_explanations = append_lime_explanations(data_with_labels,True,5)
 
 
