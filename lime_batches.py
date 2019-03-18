@@ -12,6 +12,9 @@ import time
 
 #run service with ./bin/service/nli-service-cli.py -R saved/snli/esim/2/esim -r 300 -m esim -p 9001
 # python -m IPython notebook
+# copy files from remote to local:
+# scp nluthi@vic.cs.ucl.ac.uk:/home/nluthi/dev/ThirdYearProject/explanation.jsonl /Users/noaluthi/dev/ThirdYearProject
+
 
 DATA_FILENAME = 'fever_labeled.jsonl'
 DATA_OUTPUT_FILE = 'explanation2.jsonl'
@@ -81,7 +84,6 @@ def call_service(data_items):
 
 
 	res_json = res.json()
-	print(type(res_json))
 	return res_json
 
 
@@ -151,10 +153,10 @@ def get_predicted_label(result_json):
 def append_model_predictions(data_items):
 
 	res_json = call_service(data_items)
-	for item in res_json:
-		item["label"]=get_predicted_label(item)
+	for i in range(len(res_json)):
+		data_items[i]["label"]=get_predicted_label(res_json[i])
 
-	return res_json
+	return data_items
 
 #iterate on data instances, produce LIME explanation for each instance. 
 def append_lime_explanations(data_instances,isBow,num_of_features):
@@ -177,12 +179,13 @@ def get_data_with_numbers(data_instances):
 def main():	
 	data_size = 28840
 	half = 14420
-	data_instances = get_data_in_range(DATA_FILENAME,1000,2000)
+	data_instances = get_data_in_range(DATA_FILENAME,0,10)
+	
+	data_with_labels = append_model_predictions(data_instances)
+	
 
-	# print(data_instances)
-	# print(len(data_instances))
-	data_with_predictions = append_model_predictions(data_instances)
-	data_with_explanations = append_lime_explanations(data_instances,True,5)
+	data_with_explanations = append_lime_explanations(data_with_labels,True,5)
+
 
 	with open(DATA_OUTPUT_FILE,'w') as outfile:  
 		json.dump(data_with_explanations, outfile)
