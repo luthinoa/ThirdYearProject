@@ -13,11 +13,11 @@ import time
 #run service with ./bin/service/nli-service-cli.py -R saved/snli/esim/2/esim -r 300 -m esim -p 9001
 # python -m IPython notebook
 # copy files from remote to local:
-# scp nluthi@vic.cs.ucl.ac.uk:/home/nluthi/dev/ThirdYearProject/explanation.jsonl /Users/noaluthi/dev/ThirdYearProject
+# scp nluthi@vic.cs.ucl.ac.uk:/home/nluthi/dev/ThirdYearProject/ numbers_H+P_1000INST_1000SAMP_10FEAT.jsonl /Users/noaluthi/dev/ThirdYearProject
 
-
+timestr = time.strftime("%Y%m%d-%H%M%S")
 DATA_FILENAME = 'fever_labeled.jsonl'
-DATA_OUTPUT_FILE = 'explanation2.jsonl'
+DATA_OUTPUT_FILE = explanations+"_"+timestr+'.jsonl'
 class_names = ['entailment','contradiction','neutral']
 URL = "http://0.0.0.0:9001/nnli"
 
@@ -38,12 +38,15 @@ def get_data(file_name):
 	all_instances = []
 
 	for item in json_data:
+
 		sentence1 = json.loads(item)["sentence1"]
 		sentence2 = json.loads(item)["sentence2"]
+		gold_label = json.loads(item)["gold_label"]
 
 		data_item = {
 			"sentence1": sentence1,
-			"sentence2": sentence2
+			"sentence2": sentence2,
+			"gold_label": gold_label
 		}
 		all_instances.append(data_item)
 
