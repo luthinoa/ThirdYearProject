@@ -18,7 +18,7 @@ from sklearn.metrics import mean_squared_error, r2_score
 #instead - give him only sentence1/sentence2 
 
 timestr = time.strftime("%Y%m%d-%H%M%S")
-FILE_NAME = 'numbers_BOW_1000INST_1000SAMP_10FEAT.jsonl'
+FILE_NAME = 'explanations_BOW.jsonl'
 DATA_OUTPUT_FILE = FILE_NAME+'_count_words'+timestr
 pdf = PdfPages(timestr+"_"+DATA_OUTPUT_FILE+".pdf")
 
@@ -72,14 +72,10 @@ def plot_word_count_bars(dict_data):
 		df = pd.DataFrame(dict_data[key])
 		fig = df.plot(kind="bar").get_figure()
 		fig.suptitle(key)
+		fig.set_size_inches(15, 4)
 		pdf.savefig(fig)
 
 	pdf.close()
-
-def plot_explanations(data_instances):
-
-
-	
 
 def main():
 
@@ -113,7 +109,7 @@ def main():
 
 		explanation = instance['explanation']
 
-		count_words(explanation, res[gold_label][predicted_label], 3)
+		count_words(explanation, res[gold_label][predicted_label], 10)
 
 	print("neutral neutral: "+str(len(res['neutral']['neutral'])))
 	print("neutral contradiction: "+str(len(res['neutral']['contradiction'])))
@@ -125,7 +121,7 @@ def main():
 	print("entailment contradiction: "+str(len(res['entailment']['contradiction'])))
 	print("entailment entailment: "+str(len(res['entailment']['entailment'])))
 
-	filter_word_count(res,3)
+	filter_word_count(res,50)
 	plot_word_count_bars(res)
 
 	with open(DATA_OUTPUT_FILE,'w') as outfile:  
